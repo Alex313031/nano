@@ -1,19 +1,30 @@
 # Make nano act on console resizes on Windows.
 #
 # Windows has no SIGWINCH, so nanos SIGWINCH-driven resize never fires. The
-# win32 console driver now reports resizes as KEY_RESIZE (ncurses win32con-
-# resize.patch); turn that into the same the_window_resized trigger used on Unix
-# so the screen re-lays-out. Guarded to _WIN32 (Linux keeps using SIGWINCH).
+# win32 console driver reports resizes as KEY_RESIZE (ncurses win32con-resize
+# and win32con-legacy-resize patches); convert that into the same
+# the_window_resized trigger used on Unix, at every place nano reads keys into
+# the key buffer:
+#   * the first-keycode wait, which also regenerates the screen (the safe
+#     point, as on Unix);
+#   * the burst-collection loop -- a resize surfacing there must set the flag
+#     and NOT enter the key buffer as a raw keycode (nor the macro buffer, when
+#     recording), or nano keeps its stale layout while ncurses has already
+#     resized (a seemingly frozen UI);
+#   * the search cancel-check loop, which reads the keyboard directly during
+#     long searches (its cancel path already regenerates from the flag).
+# Guarded to _WIN32 (Linux keeps using SIGWINCH) and to !NANO_TINY, since
+# the_window_resized itself only exists in a non-tiny build.
 
 diff --git a/src/winio.c b/src/winio.c
-index f0bfffe..5d17ed6 100644
+index 9ab6d4a..0763155 100644
 --- a/src/winio.c
 +++ b/src/winio.c
-@@ -225,6 +225,12 @@ void read_keys_from(WINDOW *frame)
+@@ -344,6 +344,12 @@ void read_keys_from(WINDOW *frame)
  #else
  		if (!the_window_resized)
  			input = wgetch(frame);
-+#if defined(_WIN32) && defined(KEY_RESIZE)
++#if defined(_WIN32) && defined(KEY_RESIZE)  /* in the !NANO_TINY branch */
 +		/* The win32 console driver reports a resize as KEY_RESIZE; turn it
 +		 * into the resize trigger that SIGWINCH provides on Unix. */
 +		if (input == KEY_RESIZE)
@@ -22,3 +33,41 @@ index f0bfffe..5d17ed6 100644
  		if (the_window_resized) {
  			regenerate_screen();
  			input = THE_WINDOW_RESIZED;
+@@ -425,6 +431,17 @@ void read_keys_from(WINDOW *frame)
+ #endif
+ 		input = wgetch(frame);
+ 
++#if defined(_WIN32) && defined(KEY_RESIZE) && !defined(NANO_TINY)
++		/* A resize can surface here too; it is a trigger, not a keystroke,
++		 * so it must never enter the key buffer -- nor, while recording, the
++		 * macro buffer.  The flag is acted on at the next safe point (the
++		 * first-keycode wait above). */
++		while (input == KEY_RESIZE) {
++			the_window_resized = TRUE;
++			input = wgetch(frame);
++		}
++#endif
++
+ 		/* If there aren't any more characters, stop reading. */
+ 		if (input == ERR)
+ 			break;
+diff --git a/src/search.c b/src/search.c
+index 10ebaa4..8f4cb17 100644
+--- a/src/search.c
++++ b/src/search.c
+@@ -281,6 +281,15 @@ int findnextstr(const char *needle, bool whole_word_only, int modus,
+ 
+ 			/* Consume any queued-up keystrokes, until a Cancel or nothing. */
+ 			while (input != ERR) {
++#if defined(_WIN32) && defined(KEY_RESIZE) && !defined(NANO_TINY)
++				/* A resize is a trigger, not a keystroke; the flag is
++				 * acted on at the next safe point (see above). */
++				if (input == KEY_RESIZE) {
++					the_window_resized = TRUE;
++					input = wgetch(midwin);
++					continue;
++				}
++#endif
+ 				if (input == ESC_CODE) {
+ 					napms(20);
+ 					input = wgetch(midwin);
