@@ -8,7 +8,7 @@
 # mingw cross toolchain, fetching nano (git) and ncurses (tarball) from scratch.
 
 SCRIPTNAME=$(basename "$0")
-SCRIPTVER="1.1.9"
+SCRIPTVER="1.2.0"
 
 # Colors
 YEL='\033[1;33m'  # Yellow
@@ -25,7 +25,7 @@ JOBS=$(getconf _NPROCESSORS_ONLN) # Default to num processors
 
 # Bump ncurses/nano version here. NANO_VER is a vanilla upstream tag (or branch);
 # the Windows support is layered on top from the patches/ dir.
-NANO_VER="v9.1"
+NANO_VER="v9.3"
 NCURSES_VER="6.6"
 
 # Change upstream URLs here

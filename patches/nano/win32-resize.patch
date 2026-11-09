@@ -17,10 +17,10 @@
 # the_window_resized itself only exists in a non-tiny build.
 
 diff --git a/src/winio.c b/src/winio.c
-index 9ab6d4a..0763155 100644
+index f76c0d7..e8c02bb 100644
 --- a/src/winio.c
 +++ b/src/winio.c
-@@ -344,6 +344,12 @@ void read_keys_from(WINDOW *frame)
+@@ -339,6 +339,12 @@ void read_keys_from(WINDOW *frame)
  #else
  		if (!the_window_resized)
  			input = wgetch(frame);
@@ -33,7 +33,7 @@ index 9ab6d4a..0763155 100644
  		if (the_window_resized) {
  			regenerate_screen();
  			input = THE_WINDOW_RESIZED;
-@@ -425,6 +431,17 @@ void read_keys_from(WINDOW *frame)
+@@ -420,6 +426,17 @@ void read_keys_from(WINDOW *frame)
  #endif
  		input = wgetch(frame);
  
@@ -52,10 +52,10 @@ index 9ab6d4a..0763155 100644
  		if (input == ERR)
  			break;
 diff --git a/src/search.c b/src/search.c
-index 10ebaa4..8f4cb17 100644
+index e3b2b27..547be3c 100644
 --- a/src/search.c
 +++ b/src/search.c
-@@ -281,6 +281,15 @@ int findnextstr(const char *needle, bool whole_word_only, int modus,
+@@ -284,6 +284,15 @@ int findnextstr(const char *needle, bool whole_word_only, int modus,
  
  			/* Consume any queued-up keystrokes, until a Cancel or nothing. */
  			while (input != ERR) {

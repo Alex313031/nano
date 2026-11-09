@@ -168,8 +168,8 @@ index 0000000..ff10903
 +// below. Bump these to re-version the build; keep MAJOR.MINOR in step with nano's
 +// own version (configure.ac AC_INIT -> config.h VERSION / PACKAGE_STRING).
 +#define NANO_MAJOR  9
-+#define NANO_MINOR  1
-+#define NANO_PATCH  8
++#define NANO_MINOR  3
++#define NANO_PATCH  9
 +#define NANO_BUILD  0
 +
 +// Stringize helpers (two levels so the numeric macros above expand first).

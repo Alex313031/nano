@@ -1,7 +1,7 @@
 # Richer C/C++ syntax highlighting.
 
 diff --git a/syntax/c.nanorc b/syntax/c.nanorc
-index 905587c..9c759d0 100644
+index 193e8b2..9c759d0 100644
 --- a/syntax/c.nanorc
 +++ b/syntax/c.nanorc
 @@ -5,46 +5,48 @@ header "-\*-.*\<C(\+\+)?((;|[[:blank:]]).*)?-\*-"
@@ -15,7 +15,7 @@ index 905587c..9c759d0 100644
 -color normal ":[[:blank:]]*$"
 -
 -# Types and related keywords.
--color green "\<(bool|char|double|enum|float|int|short|(un)?signed|struct|union|void|((u_?)?int(8|16|32|64)|[[:lower:]][[:lower:]_]*)_t)\>"
+-color green "\<(bool|char|double|enum|float|int|long|short|(un)?signed|struct|union|void|((u_?)?int(_fast|_least)?(8|16|32|64)|[[:lower:]][[:lower:]_]*)_t)\>"
 -color green "\<(align(as|of)|auto|const(eval|expr|init)?|extern|inline|register|restrict|sizeof|static(_assert)?|thread_local|typedef|typeof(_unqual)?|volatile)\>"
 -color green "\<(_(Align(as|of)|Atomic|BitInt|Bool|Complex|Decimal(32|64|128)|Generic|Imaginary|Noreturn|Static_assert|Thread_local))\>"
 -color green "\<(class|explicit|final|friend|mutable|namespace|override|private|protected|public|template|this|typename|using|virtual)\>"
