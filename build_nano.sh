@@ -8,7 +8,7 @@
 # mingw cross toolchain, fetching nano (git) and ncurses (tarball) from scratch.
 
 SCRIPTNAME=$(basename "$0")
-SCRIPTVER="1.2.0"
+SCRIPTVER="1.2.1"
 
 # Colors
 YEL='\033[1;33m'  # Yellow
@@ -260,18 +260,32 @@ fetch_nano() {
       git clone --depth 1 --branch "${NANO_VER}" "${NANO_URL}" "${NANO_SRC}"
 }
 
-# Download/extract ncurses source archive
+# Download/extract ncurses source archive. A copy mirrored in assets/ is used in
+# preference to NCURSES_URL, because invisible-island.net is flaky enough to fail
+# CI runs outright. The archive name carries the version, so finding
+# assets/ncurses-${NCURSES_VER}.tar.gz *is* the version match -- bumping
+# NCURSES_VER past the mirrored tarball falls back to downloading (with a note
+# saying which file was missing), rather than silently building the old version.
 fetch_ncurses() {
   if [ -x "${NCURSES_SRC}/configure" ]; then
     log "${YEL}Reusing existing ncurses source at ${NCURSES_SRC}${C0}\n"
     return
   fi
   cd "${SRC_DIR}"
-  execute "Downloading ncurses ${NCURSES_VER} tarball..." "Failed to download ncurses" \
-  wget -c "${NCURSES_URL}"
+  # Extracted in place from assets/, never copied into SRC_DIR: the post-fetch
+  # tarball cleanup only removes SRC_DIR's copy, so the mirror can't be deleted.
+  local tarball="${HERE}/assets/${NCURSES_ARCHIVE}"
+  if [ -f "${tarball}" ]; then
+    log "${GRE}Using mirrored ncurses ${NCURSES_VER} tarball at ${BOLD}assets/${NCURSES_ARCHIVE}${C0}\n"
+  else
+    log "${YEL}No assets/${NCURSES_ARCHIVE} found; downloading instead...${C0}\n"
+    tarball="${SRC_DIR}/${NCURSES_ARCHIVE}"
+    execute "Downloading ncurses ${NCURSES_VER} tarball..." "Failed to download ncurses" \
+    wget -c "${NCURSES_URL}"
+  fi
   mkdir -p "${NCURSES_SRC}"
   execute "Extracting ncurses ${NCURSES_VER}..." "Failed to extract ncurses" \
-  tar -xzf "${NCURSES_ARCHIVE}" -C "${NCURSES_SRC}" --strip-components=1
+  tar -xzf "${tarball}" -C "${NCURSES_SRC}" --strip-components=1
 }
 
 # Apply the per-OS patch series onto the vanilla sources. Each tree carries its

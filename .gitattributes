@@ -9,6 +9,11 @@
 *.diff text eol=lf
 *.patch text eol=lf
 
+# Mirrored source tarballs (assets/ncurses-*.tar.gz) must never be touched by
+# the text=auto default above.
+*.tar.gz binary
+*.tgz binary
+
 # Keep scripts correct
 *.sh text eol=lf
 *.bat text eol=crlf
