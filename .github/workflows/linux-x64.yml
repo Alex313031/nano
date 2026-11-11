@@ -19,7 +19,7 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential gcc g++ zip unzip wget tar git patch autoconf automake autopoint pkg-config gettext
+          sudo apt install -y build-essential gcc g++ zip unzip curl wget tar git patch autoconf automake autopoint pkg-config gettext
 
       - name: Build Linux x64
         run: ./build_nano.sh -64 --linux --package

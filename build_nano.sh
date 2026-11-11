@@ -8,7 +8,7 @@
 # mingw cross toolchain, fetching nano (git) and ncurses (tarball) from scratch.
 
 SCRIPTNAME=$(basename "$0")
-SCRIPTVER="1.2.1"
+SCRIPTVER="1.3.0"
 
 # Colors
 YEL='\033[1;33m'  # Yellow
@@ -187,7 +187,7 @@ install_deps() {
   # nano clone builds "from git" (configure requires pkg.m4 + msgfmt, autogen.sh
   # needs the autotools); git is needed to clone the source.
   $sudo apt-get install -y \
-        build-essential g++-multilib zip unzip wget tar git patch \
+        build-essential g++-multilib zip unzip curl wget tar git patch \
         autoconf automake autopoint pkg-config gettext \
         mingw-w64 mingw-w64-i686-dev mingw-w64-x86-64-dev mingw-w64-tools \
       || error_exit "Failed to install dependencies"
@@ -280,8 +280,15 @@ fetch_ncurses() {
   else
     log "${YEL}No assets/${NCURSES_ARCHIVE} found; downloading instead...${C0}\n"
     tarball="${SRC_DIR}/${NCURSES_ARCHIVE}"
+    # Same retry flags as the CI MinGW fetch: --retry-all-errors covers the
+    # intermittent HTTP errors plain --retry ignores, and -f is required with it
+    # so an error page is never saved as the tarball. Written to a .part file and
+    # renamed only on success, so a transfer that dies mid-stream can't leave a
+    # truncated tarball for tar to choke on.
     execute "Downloading ncurses ${NCURSES_VER} tarball..." "Failed to download ncurses" \
-    wget -c "${NCURSES_URL}"
+        sh -c 'curl -fL --retry 5 --retry-delay 5 --retry-all-errors -o "$1.part" "$2" \
+                 && mv -f "$1.part" "$1"' \
+            _ "${tarball}" "${NCURSES_URL}"
   fi
   mkdir -p "${NCURSES_SRC}"
   execute "Extracting ncurses ${NCURSES_VER}..." "Failed to extract ncurses" \
@@ -351,7 +358,8 @@ clean_build() {
 clean_sources() {
   printf "${YEL}Cleaning sources directory...${C0}\n"
   rm -rf "${SRC_DIR}/src" &&
-  rm -rf "${SRC_DIR}/${NCURSES_ARCHIVE}"
+  # .part catches a tarball left behind by a download that died mid-stream.
+  rm -rf "${SRC_DIR}/${NCURSES_ARCHIVE}" "${SRC_DIR}/${NCURSES_ARCHIVE}.part"
   printf "${GRE}Done cleaning ${SRC_DIR} ${C0}\n"
 }
 
