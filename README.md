@@ -23,7 +23,7 @@ for patching [ncurses](https://invisible-island.net/ncurses/) for Windows NT 4.0
 
 ## Downloads
 
-The latest CI build can be found in releases [Here](https://github.com/Alex313031/nano/releases/tag/CI-Build),  
+The latest CI build can be found in releases [Here](https://github.com/Alex313031/nano/releases/tag/ci-build),  
 otherwise, grab the latest stable release [Here](https://github.com/Alex313031/nano/releases/latest).
 
 ## Building

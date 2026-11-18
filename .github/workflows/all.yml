@@ -11,7 +11,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# checkout needs read; rolling the "CI-Build" prerelease (below) needs write.
+# checkout needs read; rolling the "ci-build" prerelease (below) needs write.
 # Artifact upload uses the runtime token, not these scopes. Pull-request runs
 # only build + upload artifacts (the publish step is skipped for them).
 permissions:
@@ -60,15 +60,15 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.linux64 }}
     uses: ./.github/workflows/linux-x64.yml
 
-  # Roll the fixed "CI-Build" prerelease to this commit so it always tracks the
+  # Roll the fixed "ci-build" prerelease to this commit so it always tracks the
   # latest build under a stable tag -- scripts can fetch the newest zips from a
-  # constant URL (.../releases/download/CI-Build/nano_win32.zip, nano_win64.zip,
+  # constant URL (.../releases/download/ci-build/nano_win32.zip, nano_win64.zip,
   # nano_linux_x86.zip, nano_linux_x64.zip) without knowing the commit hash. This
   # runs ONCE after all four builds (which only build + upload artifacts), so the
   # release holds every zip atomically -- no per-arch delete/create race. Only on
   # pushes to main; `needs` + success() means it publishes only if all four passed.
   publish:
-    name: Publish CI-Build
+    name: Publish ci-build
     needs: [win-x86, win-x64, linux-x86, linux-x64]
     if: ${{ success() && github.event_name == 'push' }}
     runs-on: ubuntu-22.04
@@ -81,7 +81,7 @@ jobs:
           path: dist
           pattern: nano_*
           merge-multiple: true
-      - name: Roll CI-Build prerelease
+      - name: Roll ci-build prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -96,8 +96,8 @@ jobs:
             git log -1 --format='%B'
           } > release-notes.md
           # Delete the old release + tag, then recreate at this commit with all zips.
-          gh release delete CI-Build --cleanup-tag --yes || true
-          gh release create CI-Build $(find dist -name 'nano_*.zip') \
+          gh release delete ci-build --cleanup-tag --yes || true
+          gh release create ci-build $(find dist -name 'nano_*.zip') \
             --target "${{ github.sha }}" \
             --title "CI Build (latest)" \
             --notes-file release-notes.md
